@@ -1,7 +1,4 @@
-#include <stdio.h>
-#include <wchar.h>
-#include <stdint.h>
-#include <stdlib.h>
+#include "generator.h"
 
 typedef unsigned long long uint64;
 typedef unsigned long long  BOARD;
@@ -299,7 +296,7 @@ int main(){
 
   BOARD i = 1;
   BOARD c = 0;
-    do {
+  /*    do {
     board = getNextBoard(board);
     mask = getQueenMask(board);
     BOARD B;
@@ -315,7 +312,7 @@ int main(){
       ++c;
     }
   } while(countWhiteQueens(board) < 10);//while(countBlackQueens(mask) < 9);
-  
+  */
   printf("Found %llu solutions \n",c);
   printf("%llu\n",countBlackQueens(mask));
 
@@ -330,6 +327,15 @@ int main(){
   printf("\n");
   drawBoard(0,black);
 
-  printf("%llu",pattern);
+  printf("%llu \n",pattern);
+
+  BOARD g;
+  srand(time(0));
+  do {
+    g = genWord(.4,4);
+    //drawBoard(g,~getQueenMask(g));
+    //    printf("white queens %llu\n", countWhiteQueens(g));
+  } while(!((countBlackQueensFromBoard(g) == countWhiteQueens(g)) && (countWhiteQueens(g) == 9)));
+  drawBoard(g,~getQueenMask(g));
   return 0;    
 }
