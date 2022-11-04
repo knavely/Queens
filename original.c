@@ -1,4 +1,6 @@
 #include "generator.h"
+#include <time.h>
+
 
 typedef unsigned long long uint64;
 typedef unsigned long long  BOARD;
@@ -330,12 +332,19 @@ int main(){
   printf("%llu \n",pattern);
 
   BOARD g;
+  struct timespec tstart, end;
   srand(time(0));
+  time_t t1 = time(0);
+  clock_gettime(CLOCK_MONOTONIC, &tstart);
+  
   do {
-    g = genWord(.4,4);
+    g = genWord(.3,3);
     //drawBoard(g,~getQueenMask(g));
     //    printf("white queens %llu\n", countWhiteQueens(g));
   } while(!((countBlackQueensFromBoard(g) == countWhiteQueens(g)) && (countWhiteQueens(g) == 9)));
+  clock_gettime(CLOCK_MONOTONIC, &end);
+  time_t t2 = time(0);
+  printf("took %f \n", (end.tv_sec - tstart.tv_sec) * 1e9 + (end.tv_nsec - tstart.tv_nsec) * 1e-9);
   drawBoard(g,~getQueenMask(g));
   return 0;    
 }
