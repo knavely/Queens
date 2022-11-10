@@ -324,11 +324,11 @@ MBOARD getBishopMask(MBOARD queens) {
       u16 = Or(u16, And(LShift(u15,15), And(Not(pos),mask2)));
 
       d1 = Or(d1, And(RShift(queens,15), And(Not(pos),mask2)));
-      d2 = Or(d1, And(RShift(d1,15), And(Not(pos),mask2)));
-      d3 = Or(d2, And(RShift(d2,15), And(Not(pos),mask2)));
-      d4 = Or(d3, And(RShift(d3,15), And(Not(pos),mask2)));
-      d5 = Or(d4, And(RShift(d4,15), And(Not(pos),mask2)));
-      d6 = Or(d5, And(RShift(d5,15), And(Not(pos),mask2)));
+      d2 = Or(d2, And(RShift(d1,15), And(Not(pos),mask2)));
+      d3 = Or(d3, And(RShift(d2,15), And(Not(pos),mask2)));
+      d4 = Or(d4, And(RShift(d3,15), And(Not(pos),mask2)));
+      d5 = Or(d5, And(RShift(d4,15), And(Not(pos),mask2)));
+      d6 = Or(d6, And(RShift(d5,15), And(Not(pos),mask2)));
       d7 = Or(d7, And(RShift(d6,15), And(Not(pos),mask2)));
       d8 = Or(d8, And(LShift(d7,15), And(Not(pos),mask2)));
       d9 = Or(d9, And(RShift(d8,15), And(Not(pos),mask2)));
