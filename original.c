@@ -328,7 +328,8 @@ int main(){
   drawBoard(white,0);
   printf("\n");
   drawBoard(0,black);
-
+  drawBoard(~black,white);
+  
   printf("%llu \n",pattern);
 
   BOARD g;
