@@ -387,7 +387,7 @@ __device__ __host__ MBOARD getBishopMask(MBOARD queens) {
       d5 = Or(d5, And(RShift(d4,15), And(Not(pos),mask1)));
       d6 = Or(d6, And(RShift(d5,15), And(Not(pos),mask1)));
       d7 = Or(d7, And(RShift(d6,15), And(Not(pos),mask1)));
-      d8 = Or(d8, And(LShift(d7,15), And(Not(pos),mask1)));
+      d8 = Or(d8, And(RShift(d7,15), And(Not(pos),mask1)));
       d9 = Or(d9, And(RShift(d8,15), And(Not(pos),mask1)));
       d10 = Or(d10, And(RShift(d9,15), And(Not(pos),mask1)));
       d11 = Or(d11, And(RShift(d10,15), And(Not(pos),mask1)));
@@ -422,7 +422,7 @@ __device__ __host__ MBOARD getBishopMask(MBOARD queens) {
       d5 = Or(d5, And(RShift(d4,15), And(Not(pos),mask2)));
       d6 = Or(d6, And(RShift(d5,15), And(Not(pos),mask2)));
       d7 = Or(d7, And(RShift(d6,15), And(Not(pos),mask2)));
-      d8 = Or(d8, And(LShift(d7,15), And(Not(pos),mask2)));
+      d8 = Or(d8, And(RShift(d7,15), And(Not(pos),mask2)));
       d9 = Or(d9, And(RShift(d8,15), And(Not(pos),mask2)));
       d10 = Or(d10, And(RShift(d9,15), And(Not(pos),mask2)));
       d11 = Or(d11, And(RShift(d10,15), And(Not(pos),mask2)));
@@ -493,11 +493,11 @@ MBOARD sampleH() {
   int c = 0;
   int mq = 0;
   while(c < 100000000) {
-    mb = genMBOARDH(.51,6);
+    mb = genMBOARDH(.41,7);
     int blackQ = countBlackQueensH(mb);
     int whiteQ = countWhiteQueensH(mb);
  
-    if(whiteQ == blackQ && whiteQ > mq) {
+    if((whiteQ == blackQ) && whiteQ > mq) {
       mq = whiteQ;
       mxb = mb;
       if(whiteQ > 20){
@@ -519,15 +519,15 @@ int main() {
   cudaMallocManaged(&mxb, sizeof(MBOARD));
   cudaMallocManaged(&mq, sizeof(int));
   //sample<<<1,1>>>(mq,mxb);
-  //sampleH();
+  sampleH();
   cudaDeviceSynchronize();
-  //  MBOARD t = {.board = {60753670,1147788, 34352, 36622}};
-  MBOARD t = {.board = {0,0, 0,  1 << 10 | 1 << 15 }};
-  drawBoard(getBishopMask(t),t);
-  drawBoard(t,{0});
-  drawBoard(bishopDiagonal2(),bishopDiagonal1());
-  for(int i = 0; i < 16; ++i)
-    drawBoard(RShiftBishop1(bishopDiagonal1(),i),t);
+    MBOARD t = {.board = {60753670,1147788, 34352, 36622}};
+  //  MBOARD t = {.board = {0,0, 0,  1 << 10 | 1 << 15 }};
+  drawBoard(getQueenMask(t),t);
+  drawBoard(t,Not(getQueenMask(t)));
+  //drawBoard(bishopDiagonal2(),bishopDiagonal1());
+  //for(int i = 0; i < 16; ++i)
+  // drawBoard(RShiftBishop1(bishopDiagonal1(),i),t);
   /*
   printf("%i %i \n", countBlackQueensH(t), countWhiteQueensH(t));
   MBOARD B;
