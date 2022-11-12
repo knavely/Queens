@@ -54,7 +54,7 @@ __device__ __host__ MBOARD LShift(MBOARD B,int k) {
 }
 
 __device__ __host__ MBOARD RShift(MBOARD B,int k) {
-  BOARD t = 0; //B.board[0] & (((1ULL << k) - 1) << 64-k);
+  BOARD t = 0ULL; //B.board[0] & (((1ULL << k) - 1) << 64-k);
   for(int i = N-1; i >= 0; --i) {
     BOARD T = B.board[i];
     B.board[i] = ((B.board[i] >> k) | t);
@@ -84,7 +84,8 @@ __device__ __host__ MBOARD LShiftBishop1(MBOARD mb, int k) {
   MBOARD l = mb;
   for(int i = 0; i < k; ++i) {
     l = LShift(l,1);
-    int p = 16; 
+    int p = 0;
+    
     l.board[0] = ~(1ULL << p | 1ULL << (p+16) | 1ULL << (p+32) | 1ULL << (p+48)) & l.board[0];
     l.board[1] = ~(1ULL << p | 1ULL << (p+16) | 1ULL << (p+32) | 1ULL << (p+48)) & l.board[1];
     l.board[2] = ~(1ULL << p | 1ULL << (p+16) | 1ULL << (p+32) | 1ULL << (p+48)) & l.board[2];
@@ -142,14 +143,14 @@ __device__ __host__ void drawBoard(MBOARD white, MBOARD black) {
 }
 
 __device__ __host__ BOARD Positive(MBOARD B) {
-  return (B.board[0] || B.board[1] || B.board[2] || B.board[3]);
+  return (BOARD)(B.board[0] + B.board[1] + B.board[2] + B.board[3]);
   }
 
 __device__ __host__ MBOARD And(MBOARD A, MBOARD B) {
   return (MBOARD){.board = {(A.board[0] & B.board[0]),(A.board[1] & B.board[1]),
       (A.board[2] & B.board[2]), (A.board[3] & B.board[3])}};
 }
-__device__ __host__ MBOARD Or(MBOARD A, MBOARD B) {
+__device__ __host__ const MBOARD Or(const MBOARD A, const MBOARD B) {
   return (MBOARD){.board = {
       A.board[0] | B.board[0],
       A.board[1] | B.board[1],
@@ -275,7 +276,6 @@ __device__ __host__ MBOARD getBishopMask(MBOARD queens) {
   MBOARD BISHOP1 = bishopDiagonal1(); //0x8040201008040201;
   MBOARD BISHOP2 = bishopDiagonal2(); //0x0102040810204080;  
   MBOARD pos = queens;
-
   MBOARD r1 = {0},r2 = {0},r3 = {0},r4 = {0},r5 = {0},r6 = {0},r7 = {0},r8 = {0},l1 = {0},l2 = {0},l3= {0},l4 = {0},l5 = {0},
     l6 = {0},l7 = {0},l8 = {0};
   MBOARD u1 = {0},u2 = {0},u3 = {0},u4 = {0},u5 = {0},u6 = {0},u7 = {0},u8 = {0},d1 = {0},d2 = {0},d3 = {0},d4 = {0},d5 = {0}
@@ -284,7 +284,7 @@ __device__ __host__ MBOARD getBishopMask(MBOARD queens) {
     l14 = {0},l15 = {0},l16 = {0};
   MBOARD u9 = {0},u10 = {0},u11 = {0},u12 = {0},u13 = {0},u14 = {0},u15 = {0},u16 = {0},d9 = {0},d10 = {0},d11 = {0},d12 = {0},d13 = {0},d14 = {0},d15 = {0},d16 = {0};
   
-  for(MBOARD mask1 = BISHOP1, mask2 = BISHOP1; Positive(mask2); mask1 = RShiftBishop1(mask1,1), mask2 = LShiftBishop1(mask2,1)) {
+  for(MBOARD mask1 = BISHOP1, mask2 = BISHOP1; Positive(mask2); mask1 = RShiftBishop1(mask1,1), mask2 = LShiftBishop1(mask2,1)) {   
     if(Positive(And(queens,mask2))) {
       //drawBoard(queens,mask2);
       //drawBoard(queens,r5);
@@ -433,7 +433,6 @@ __device__ __host__ MBOARD getBishopMask(MBOARD queens) {
       d16 = Or(d16, And(RShift(d15,15), And(Not(pos),mask2)));
       }   
   }
-  
   MBOARD bishopMask1 =  Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(r1, r2),r3),r4),r5),r6),r7),r8),l1),
 											     l2),l3),l4),l5), l6), l7), l8),
 									u1), u2), u3), u4), u5), u6), u7), u8),d1), d2), d3), d4), d5), d6), d7), d8);
@@ -467,7 +466,12 @@ __host__ int countBlackQueensH(MBOARD mb) {
 }
 
 __global__ void sample(int *mq, MBOARD *mxb) {
-  MBOARD mb = {0};
+  //printf("pop %i %i \n", __popcll(0xFFULL), __popcll(~0xFFULL));
+  MBOARD b = {.board = {60753670ULL ,1147788ULL, 34352ULL, 36622ULL}};
+  //MBOARD b = genMBOARD(.41,5, 0);
+  printf("count GPU %i %i \n", countWhiteQueensD(b),countBlackQueensD(b));
+  *mxb = b;
+  /*MBOARD mb = {.board = {0xFF, 0, 0,0}};
   int i = blockIdx.x*blockDim.x * threadIdx.x;
   int c = 0;
   while(c < 1000) {
@@ -475,7 +479,7 @@ __global__ void sample(int *mq, MBOARD *mxb) {
     int blackQ = countBlackQueensD(mb);
     int whiteQ = countWhiteQueensD(mb);
  
-    if(whiteQ == blackQ && whiteQ > *mq) {
+    if((whiteQ == blackQ) && whiteQ > *mq) {
       atomicMax(mq,whiteQ);
       *mxb = mb;
       if(whiteQ > 10){
@@ -485,14 +489,15 @@ __global__ void sample(int *mq, MBOARD *mxb) {
       }
     }
     ++c;
-  }
+    }*/
+  
 }
 
 MBOARD sampleH() {
   MBOARD mb = {0}, mxb = {0};
   int c = 0;
   int mq = 0;
-  while(c < 100000000) {
+  while(c < 1000000000) {
     mb = genMBOARDH(.41,7);
     int blackQ = countBlackQueensH(mb);
     int whiteQ = countWhiteQueensH(mb);
@@ -518,17 +523,21 @@ int main() {
   int * mq;
   cudaMallocManaged(&mxb, sizeof(MBOARD));
   cudaMallocManaged(&mq, sizeof(int));
-  //sample<<<1,1>>>(mq,mxb);
-  sampleH();
+  sample<<<1,1>>>(mq,mxb);
+  //  sampleH();
   cudaDeviceSynchronize();
-    MBOARD t = {.board = {60753670,1147788, 34352, 36622}};
+  drawBoard(*mxb,{0}); 
+   
+  MBOARD t = {.board = {60753670,1147788, 34352, 36622}};
+  printf("count CPU %i %i \n", countWhiteQueensH(t),countBlackQueensH(t));
   //  MBOARD t = {.board = {0,0, 0,  1 << 10 | 1 << 15 }};
+    //t = *mxb;
   drawBoard(getQueenMask(t),t);
-  drawBoard(t,Not(getQueenMask(t)));
+  drawBoard(Not(getQueenMask(t)),t);
   //drawBoard(bishopDiagonal2(),bishopDiagonal1());
   //for(int i = 0; i < 16; ++i)
   // drawBoard(RShiftBishop1(bishopDiagonal1(),i),t);
-  /*
+  
   printf("%i %i \n", countBlackQueensH(t), countWhiteQueensH(t));
   MBOARD B;
   B.board[0] = 0xFFFFULL;
@@ -549,6 +558,6 @@ int main() {
   drawBoard(getBishopMask(UShiftRook(C,5)),UShiftRook(C,5));
   MBOARD g = {.board = {0,0,0,1ULL << 44}};
   drawBoard(getQueenMask(g),{0});
-  */
+  
   return 0;
 }
