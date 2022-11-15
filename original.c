@@ -1,4 +1,4 @@
-#include "generator.h"
+#include "gen.h"
 #include <time.h>
 
 
@@ -339,7 +339,7 @@ int main(){
   clock_gettime(CLOCK_MONOTONIC, &tstart);
   
   do {
-    g = genWord(.3,3);
+    g = genWord64(.3,3);
     //drawBoard(g,~getQueenMask(g));
     //    printf("white queens %llu\n", countWhiteQueens(g));
   } while(!((countBlackQueensFromBoard(g) == countWhiteQueens(g)) && (countWhiteQueens(g) == 9)));

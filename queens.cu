@@ -497,22 +497,49 @@ MBOARD sampleH() {
   MBOARD mb = {0}, mxb = {0};
   int c = 0;
   int mq = 0;
-  while(c < 1000000000) {
-    mb = genMBOARDH(.41,7);
+  while(mq < 37) {
+    //  mb = genMBOARDH(.28,6);  36 36
+    float p = .5;
+    int m = 5;
+    //mb = {.board = {(BOARD)rand(),(BOARD)rand(),(BOARD)rand(),(BOARD)rand()}};
+    mb = genMBOARDH(p,m);
+    // mb = genMBOARDH(.28,5);
     int blackQ = countBlackQueensH(mb);
     int whiteQ = countWhiteQueensH(mb);
- 
+
+    if((whiteQ <= blackQ)) {
+      if(whiteQ >= 27){ //28
+	printf("max so far %i, %i %i inbalance found p = %f m = %i \n",mq, whiteQ,blackQ,p,m);
+	drawBoard(Not(getQueenMask(mb)),mb);
+	
+	printf("fixing .. \n");
+      }
+      mb = Or(mb, Not(getQueenMask(Not(getQueenMask(mb)))));
+      int newBlackQ = countBlackQueensH(mb);
+      int newWhiteQ = countWhiteQueensH(mb);
+      if(whiteQ >= 27){
+	if(newBlackQ > newWhiteQ) {
+	  printf("max so far %i, imbalance remains %i %i p = %f m = %i \n",mq,newWhiteQ, newBlackQ,p,m);
+	}
+	else printf("max so far %i, imbalance fixed %i %i p = %f m = %i \n", mq,newWhiteQ, newBlackQ,p,m);
+	drawBoard(Not(getQueenMask(mb)),mb);
+      }
+      blackQ = newBlackQ;
+      whiteQ = newWhiteQ;
+    }
+    
     if((whiteQ == blackQ) && whiteQ > mq) {
       mq = whiteQ;
       mxb = mb;
       if(whiteQ > 20){
-	printf("%i %i %i hi %i\n",whiteQ, blackQ,c,mq);
+	printf("%i %i %i hi %i p = %f m = %i \n",whiteQ, blackQ,c,mq, p, m);
 	//	printf("%llu %llu %llu %llu \n", mb.board[0], mb.board[1], mb.board[2], mb.board[3]);
 	drawBoard(Not(getQueenMask(mb)),mb);
       }
     }
     ++c;
   }
+  printf("DONE \n");
   return mxb;
 }
 
@@ -523,10 +550,11 @@ int main() {
   int * mq;
   cudaMallocManaged(&mxb, sizeof(MBOARD));
   cudaMallocManaged(&mq, sizeof(int));
-  sample<<<1,1>>>(mq,mxb);
-  //  sampleH();
-  cudaDeviceSynchronize();
-  drawBoard(*mxb,{0}); 
+  //sample<<<1,1>>>(mq,mxb);
+  srand(time(0));
+  sampleH();
+  //cudaDeviceSynchronize();
+  // drawBoard(*mxb,{0}); 
    
   MBOARD t = {.board = {60753670,1147788, 34352, 36622}};
   printf("count CPU %i %i \n", countWhiteQueensH(t),countBlackQueensH(t));
