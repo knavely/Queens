@@ -41,7 +41,7 @@ __device__  BOARD genWord(float x, int m, int id) {
   g = g << nA;
   return g;
 }
-
+  
 __device__  MBOARD genMBOARD(float x, int m, int id) {
   return {.board = {genWord(x,m,id),genWord(x,m,id),genWord(x,m,id),genWord(x,m,id)}};
 }
@@ -64,10 +64,10 @@ __host__  MBOARD genWordH(float x, int m) {
   g.board[0] = g.board[0] | ((1ULL << nB) - 1);
   
   
-  int nA = geomH(x) % (m+1);
+  int nA = geomH(x) % (256*m+1);
   int core = geomH(c);
   for(int i = 0; i < core; ++i) {
-    int ya = (geomH(x) % (m)) + 1;
+    int ya = (geomH(x) % (256*m)) + 1;
     int yb = (geomH(x) % (m)) + 1;
     g.board[((i+nB)/64) % 4] = g.board[((i+nB)/64) % 4] << (ya + yb);
     g.board[((i+nB)/64) % 4] = g.board[((i+nB)/64) % 4] | ((1ULL << yb) -1);

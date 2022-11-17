@@ -497,18 +497,22 @@ MBOARD sampleH() {
   MBOARD mb = {0}, mxb = {0};
   int c = 0;
   int mq = 0;
-  while(mq < 37) {
+  while(mq < 38) {
     //  mb = genMBOARDH(.28,6);  36 36
-    float p = .5;
-    int m = 5;
+    float p = .2;
+    int m = 1;
     //mb = {.board = {(BOARD)rand(),(BOARD)rand(),(BOARD)rand(),(BOARD)rand()}};
     mb = genMBOARDH(p,m);
     // mb = genMBOARDH(.28,5);
     int blackQ = countBlackQueensH(mb);
     int whiteQ = countWhiteQueensH(mb);
 
+    if(whiteQ + blackQ >= 74 && (whiteQ >= 28 && blackQ >= 28)) {
+      printf("%i %i %i sum %i p = %f m = %i \n",whiteQ, blackQ,c,mq, p, m);
+      drawBoard(Not(getQueenMask(mb)),mb);
+    }
     if((whiteQ <= blackQ)) {
-      if(whiteQ >= 27){ //28
+      if(whiteQ >= 24){ //28
 	printf("max so far %i, %i %i inbalance found p = %f m = %i \n",mq, whiteQ,blackQ,p,m);
 	drawBoard(Not(getQueenMask(mb)),mb);
 	
