@@ -1,3 +1,5 @@
+#include <thrust/random.h>
+
 #define N 4
 #define R 64 / N
 #define M R * R

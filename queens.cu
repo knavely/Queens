@@ -1,15 +1,16 @@
-#include <thrust/host_vector.h>
+/*#include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
 #include <thrust/generate.h>
 #include <thrust/reduce.h>
 #include <thrust/functional.h>
 #include <thrust/random.h>
-#include <stdio.h>
-#include "cuda_runtime.h"
-#include "device_launch_parameters.h"
+*/
+//#include <stdio.h>
+//#include "cuda_runtime.h"
+//#include "device_launch_parameters.h"
 //#include "queens.h"
-#include "generator.h"
-#include "philox.h"
+#include "generator.cuh"
+//#include "philox.h"
 __device__ __host__ BOARD getBit(MBOARD B, BOARD b) {
   BOARD d = b/64;
   BOARD r  = b % 64;
@@ -467,30 +468,35 @@ __host__ int countBlackQueensH(MBOARD mb) {
 
 __global__ void sample(int *mq, MBOARD *mxb) {
   //printf("pop %i %i \n", __popcll(0xFFULL), __popcll(~0xFFULL));
-  MBOARD b = {.board = {60753670ULL ,1147788ULL, 34352ULL, 36622ULL}};
+  //MBOARD b = {.board = {60753670ULL ,1147788ULL, 34352ULL, 36622ULL}};
   //MBOARD b = genMBOARD(.41,5, 0);
-  printf("count GPU %i %i \n", countWhiteQueensD(b),countBlackQueensD(b));
-  *mxb = b;
-  /*MBOARD mb = {.board = {0xFF, 0, 0,0}};
-  int i = blockIdx.x*blockDim.x * threadIdx.x;
+  //  printf("count GPU %i %i \n", countWhiteQueensD(b),countBlackQueensD(b));
+  //*mxb = b;
+  MBOARD mb = {0};
   int c = 0;
-  while(c < 1000) {
-    mb = genMBOARD(.41,5, i);
+  int id = blockIdx.x * blockDim.x + threadIdx.x;
+  while(*mq < 37) {
+    mb = genWordNV(.2,2,id);
+    //    mb = {.board = {60753670ULL ,1147788ULL, 34352ULL, 36622ULL}};
     int blackQ = countBlackQueensD(mb);
     int whiteQ = countWhiteQueensD(mb);
- 
+    //    printf("%i %i %i\n",blackQ, whiteQ, *mq);
+    if((whiteQ <= blackQ)) {
+      mb = Or(mb, Not(getQueenMask(Not(getQueenMask(mb)))));
+      int newBlackQ = countBlackQueensD(mb);
+      int newWhiteQ = countWhiteQueensD(mb);
+      blackQ = newBlackQ;
+      whiteQ = newWhiteQ;
+    }
+    
     if((whiteQ == blackQ) && whiteQ > *mq) {
-      atomicMax(mq,whiteQ);
+      printf("%i %i %i it %i id %i\n",blackQ, whiteQ, *mq, c, id);
+      drawBoard(Not(getQueenMask(mb)),mb);
+      *mq = whiteQ;
       *mxb = mb;
-      if(whiteQ > 10){
-	printf("%i %i %i hi %i\n",whiteQ, blackQ,c,*mq);
-	printf("%llu %llu %llu %llu \n", mb.board[0], mb.board[1], mb.board[2], mb.board[3]);
-	//drawBoard(Not(getQueenMask(mb)),mb);
-      }
     }
     ++c;
-    }*/
-  
+  } 
 }
 
 MBOARD sampleH() {
@@ -549,16 +555,17 @@ MBOARD sampleH() {
 
 int main() {
   int blockSize = 128;
-  int blocks = 4000/blockSize;
+  int blocks = 10000/blockSize;
   MBOARD *mxb;
   int * mq;
   cudaMallocManaged(&mxb, sizeof(MBOARD));
   cudaMallocManaged(&mq, sizeof(int));
-  //sample<<<1,1>>>(mq,mxb);
-  srand(time(0));
-  sampleH();
-  //cudaDeviceSynchronize();
-  // drawBoard(*mxb,{0}); 
+  sample<<<blocks,blockSize>>>(mq,mxb);
+  cudaDeviceSynchronize();
+  drawBoard(Not(getQueenMask(*mxb)),*mxb); 
+  
+  //srand(time(0));
+  //sampleH();
    
   MBOARD t = {.board = {60753670,1147788, 34352, 36622}};
   printf("count CPU %i %i \n", countWhiteQueensH(t),countBlackQueensH(t));
