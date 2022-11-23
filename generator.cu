@@ -30,8 +30,9 @@ __device__ inline BOARD ROL64(BOARD a, unsigned int offset){
 __device__  MBOARD genWordNV(float x, int m, int id) {
   //B = 1, A = 0
   float c = (pow(x,2)*((1-pow(x,m))*(1-pow(x,m))))/(pow(1-x,2));
+  c = c ;
   MBOARD g = {0ULL};
-  int nB = geom(x,id) % (m);
+  int nB = geom(x,id) % (m+1);
   //  printf("%i\n",nB);
   g.board[0] = g.board[0] | ((1ULL << nB) - 1);
   
@@ -39,8 +40,8 @@ __device__  MBOARD genWordNV(float x, int m, int id) {
   int nA = geom(x,id) % (m*256+1);
   int core = geom(c,id);
   for(int i = 0; i < core; ++i) {
-    int ya = (geom(x,id) % (m*256)) + 1;
-    int yb = (geom(x,id) % (m)) + 1;
+    int ya = (geom(x,id) % (m*256+1)) + 1;
+    int yb = ((geom(x,id) % (m+1)) + 1);
     g.board[((i+nB)/64) % 4] = ROL64(g.board[((i+nB)/64) % 4],(ya + yb));
     g.board[((i+nB)/64) % 4] = g.board[((i+nB)/64) % 4] | ((1ULL << yb) -1);
   }
@@ -52,15 +53,17 @@ __device__  MBOARD genWordNV(float x, int m, int id) {
 }
 
 __device__  int geom(float x,int id) {
-  static int p = 5000;
+  static int p = 0;
   //if(p == 5000)
-  p = p + id;
-  Philox_2x32<100> sampler;
+  p = p + 50000 + id;
+  Philox_2x32<500> sampler;
   int i = 0;
-  x = x * 100;
+  //x = x * 100;
   int r = x+1;
-  while(r > x) {
-    r = sampler.rand_int(p,p,p,100);
+  float rr = x+1;
+  while(rr > x) {
+    //rr = sampler.rand_int(p+5001,p+5002,p+5003,100);
+    rr = sampler.rand_float(p+id,1.0/id,1.0);
     p++;
     ++i;
   }

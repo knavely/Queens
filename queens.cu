@@ -476,7 +476,7 @@ __global__ void sample(int *mq, MBOARD *mxb) {
   int c = 0;
   int id = blockIdx.x * blockDim.x + threadIdx.x;
   while(*mq < 37) {
-    mb = genWordNV(.2,2,id);
+    mb = genWordNV(.1,2,id);
     //    mb = {.board = {60753670ULL ,1147788ULL, 34352ULL, 36622ULL}};
     int blackQ = countBlackQueensD(mb);
     int whiteQ = countWhiteQueensD(mb);
@@ -488,7 +488,10 @@ __global__ void sample(int *mq, MBOARD *mxb) {
       blackQ = newBlackQ;
       whiteQ = newWhiteQ;
     }
-    
+    if(whiteQ > 34 && blackQ > 34) {
+      printf("%i %i %i it %i id %i\n",blackQ, whiteQ, *mq, c, id);
+        drawBoard(Not(getQueenMask(mb)),mb);
+	} 
     if((whiteQ == blackQ) && whiteQ > *mq) {
       printf("%i %i %i it %i id %i\n",blackQ, whiteQ, *mq, c, id);
       drawBoard(Not(getQueenMask(mb)),mb);
@@ -554,13 +557,13 @@ MBOARD sampleH() {
 }
 
 int main() {
-  int blockSize = 128;
+  int blockSize = 32;
   int blocks = 10000/blockSize;
   MBOARD *mxb;
   int * mq;
   cudaMallocManaged(&mxb, sizeof(MBOARD));
   cudaMallocManaged(&mq, sizeof(int));
-  sample<<<blocks,blockSize>>>(mq,mxb);
+  sample<<<600000,blockSize>>>(mq,mxb);
   cudaDeviceSynchronize();
   drawBoard(Not(getQueenMask(*mxb)),*mxb); 
   
