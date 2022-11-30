@@ -170,7 +170,6 @@ __device__ __host__ MBOARD rookRowMask(){
 __device__ __host__ MBOARD rookColMask(){
   BOARD pattern = 1ULL | (1ULL << 16) | (1ULL << 32) | (1ULL << 48);
   return {.board = {pattern,pattern,pattern,pattern}};
-
 }
 
 
@@ -466,6 +465,68 @@ __host__ int countBlackQueensH(MBOARD mb) {
   return __builtin_popcountll(black.board[0]) + __builtin_popcountll(black.board[1]) + __builtin_popcountll(black.board[2]) + __builtin_popcountll(black.board[3]);
 }
 
+__device__  MBOARD findSwap(MBOARD queens, int *mx) {
+  MBOARD qmax = queens;
+  int num = 0;
+  for(MBOARD mask = rookRowMask(); Positive(mask); mask = LShiftRook(mask,1)) {
+    MBOARD swapped = And(queens, Not(mask));
+    int WhiteQ = countWhiteQueensD(swapped);
+    int BlackQ = countBlackQueensD(swapped);
+    if(WhiteQ == BlackQ && WhiteQ > num){
+      num = BlackQ;
+      qmax = swapped;
+    } 
+  } 
+  for(MBOARD mask = rookColMask(); Positive(mask); mask = LShift(mask,1)) {
+    MBOARD swapped = And(queens, Not(mask));
+    int WhiteQ = countWhiteQueensD(swapped);
+    int BlackQ = countBlackQueensD(swapped);
+    if(WhiteQ == BlackQ && WhiteQ > num){
+      num = BlackQ;
+      qmax = swapped;
+    }
+  }
+  MBOARD BISHOP1 = bishopDiagonal1(); //0x8040201008040201;
+  MBOARD BISHOP2 = bishopDiagonal2(); //0x0102040810204080;  
+
+  for(MBOARD mask1 = BISHOP1, mask2 = BISHOP1; Positive(mask2); mask1 = RShiftBishop1(mask1,1), mask2 = LShiftBishop1(mask2,1)) {
+    MBOARD swapped = And(queens, Not(mask1));
+    int WhiteQ = countWhiteQueensD(swapped);
+    int BlackQ = countBlackQueensD(swapped);
+    if(WhiteQ == BlackQ && WhiteQ > num){
+      num = BlackQ;
+      qmax = swapped;
+    }
+    swapped = And(queens, Not(mask2));
+    WhiteQ = countWhiteQueensD(swapped);
+    BlackQ = countBlackQueensD(swapped);
+    if(WhiteQ == BlackQ && WhiteQ > num){
+      num = BlackQ;
+      qmax = swapped;
+    }
+  }
+
+  for(MBOARD mask1 = BISHOP2, mask2 = BISHOP2; Positive(mask2); mask1 = RShiftBishop1(mask1,1), mask2 = LShiftBishop1(mask2,1)) {
+    MBOARD swapped = And(queens, Not(mask1));
+    int WhiteQ = countWhiteQueensD(swapped);
+    int BlackQ = countBlackQueensD(swapped);
+    if(WhiteQ == BlackQ && WhiteQ > num){
+      num = BlackQ;
+      qmax = swapped;
+    }
+    swapped = And(queens, Not(mask2));
+    WhiteQ = countWhiteQueensD(swapped);
+    BlackQ = countBlackQueensD(swapped);
+    if(WhiteQ == BlackQ && WhiteQ > num){
+      num = BlackQ;
+      qmax = swapped;
+    }
+  }
+  *mx = num;
+  return qmax;	
+} 
+
+
 __global__ void sample(int *mq, MBOARD *mxb) {
   //printf("pop %i %i \n", __popcll(0xFFULL), __popcll(~0xFFULL));
   //MBOARD b = {.board = {60753670ULL ,1147788ULL, 34352ULL, 36622ULL}};
@@ -475,26 +536,44 @@ __global__ void sample(int *mq, MBOARD *mxb) {
   MBOARD mb = {0};
   int c = 0;
   int id = blockIdx.x * blockDim.x + threadIdx.x;
-  while(*mq < 37) {
-    mb = genWordNV(.1,2,id);
+  while(*mq < 38) {
+    //mb = genWordNV((float)id/20000.0,((float)id/10000.0)*10,id);
+    mb = genWordNV(.2,2,id);
     //    mb = {.board = {60753670ULL ,1147788ULL, 34352ULL, 36622ULL}};
     int blackQ = countBlackQueensD(mb);
     int whiteQ = countWhiteQueensD(mb);
     //    printf("%i %i %i\n",blackQ, whiteQ, *mq);
-    if((whiteQ <= blackQ)) {
+    //if((whiteQ <= blackQ)) {
       mb = Or(mb, Not(getQueenMask(Not(getQueenMask(mb)))));
       int newBlackQ = countBlackQueensD(mb);
       int newWhiteQ = countWhiteQueensD(mb);
       blackQ = newBlackQ;
       whiteQ = newWhiteQ;
-    }
-    if(whiteQ > 34 && blackQ > 34) {
+      //}
+    if(whiteQ >= 39 && blackQ >= 35 ) {
       printf("%i %i %i it %i id %i\n",blackQ, whiteQ, *mq, c, id);
-        drawBoard(Not(getQueenMask(mb)),mb);
-	} 
-    if((whiteQ == blackQ) && whiteQ > *mq) {
-      printf("%i %i %i it %i id %i\n",blackQ, whiteQ, *mq, c, id);
+      printf("%llu %llu %llu %llu\n",mb.board[0],mb.board[1],mb.board[2],mb.board[3]);
       drawBoard(Not(getQueenMask(mb)),mb);
+
+      int s = 0;   
+      MBOARD swapped = findSwap(mb, &s);
+      if(s > *mq){
+	whiteQ = s;
+	blackQ = s;
+	if(s > 35){
+	  printf("s = %i\n",s);
+	  drawBoard(Not(getQueenMask(mb)),mb);
+	  printf("swapped \n");
+	  drawBoard(Not(getQueenMask(swapped)),swapped);      
+	}
+	mb = swapped;
+      }
+    }
+    
+    
+    if((whiteQ == blackQ) && whiteQ > *mq) {
+      //  printf("%i %i %i it %i id %i\n",blackQ, whiteQ, *mq, c, id);
+     //drawBoard(Not(getQueenMask(mb)),mb);
       *mq = whiteQ;
       *mxb = mb;
     }
@@ -563,7 +642,7 @@ int main() {
   int * mq;
   cudaMallocManaged(&mxb, sizeof(MBOARD));
   cudaMallocManaged(&mq, sizeof(int));
-  sample<<<600000,blockSize>>>(mq,mxb);
+  sample<<<10000,blockSize>>>(mq,mxb);
   cudaDeviceSynchronize();
   drawBoard(Not(getQueenMask(*mxb)),*mxb); 
   

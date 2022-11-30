@@ -8,15 +8,17 @@
 typedef unsigned long long BOARD;
 
 __device__ int geomNV(float x, int id) {
+  static int p = 10000;
   thrust::default_random_engine rng;
   thrust::uniform_real_distribution<float> uniform(0.0, 1.0);
-  rng.discard(5000*id);
-  float r = uniform(rng);
+  //rng.discard(id);
+  //float r = uniform(rng);
+  float r = x + 1;
   //   printf("%f\n",r);
   int i = 0;
   while(r > x) {
-     rng.discard(5000*id);
-    r = uniform(rng);
+    rng.discard(id*p++);
+    r = uniform(rng);   
     ++i;
   }
   return i;
@@ -30,18 +32,17 @@ __device__ inline BOARD ROL64(BOARD a, unsigned int offset){
 __device__  MBOARD genWordNV(float x, int m, int id) {
   //B = 1, A = 0
   float c = (pow(x,2)*((1-pow(x,m))*(1-pow(x,m))))/(pow(1-x,2));
-  c = c ;
+ 
   MBOARD g = {0ULL};
-  int nB = geom(x,id) % (m+1);
+  int nB = (geomNV(x+.5,id) % (m+1));
   //  printf("%i\n",nB);
   g.board[0] = g.board[0] | ((1ULL << nB) - 1);
   
-  
-  int nA = geom(x,id) % (m*256+1);
-  int core = geom(c,id);
+  int nA = geomNV(x,id)*4 % (256*m+1);
+  int core = geomNV(c,id);
   for(int i = 0; i < core; ++i) {
-    int ya = (geom(x,id) % (m*256+1)) + 1;
-    int yb = ((geom(x,id) % (m+1)) + 1);
+    int ya = (geomNV(x,id) % (300*m+1))*4 + 1;
+    int yb = ((geomNV(x+.5,id) % (m+1)) +1);
     g.board[((i+nB)/64) % 4] = ROL64(g.board[((i+nB)/64) % 4],(ya + yb));
     g.board[((i+nB)/64) % 4] = g.board[((i+nB)/64) % 4] | ((1ULL << yb) -1);
   }
@@ -55,15 +56,15 @@ __device__  MBOARD genWordNV(float x, int m, int id) {
 __device__  int geom(float x,int id) {
   static int p = 0;
   //if(p == 5000)
-  p = p + 50000 + id;
-  Philox_2x32<500> sampler;
+  p = p + 10000 + id;
+  Philox_2x32<20> sampler;
   int i = 0;
   //x = x * 100;
   int r = x+1;
   float rr = x+1;
   while(rr > x) {
     //rr = sampler.rand_int(p+5001,p+5002,p+5003,100);
-    rr = sampler.rand_float(p+id,1.0/id,1.0);
+    rr = sampler.rand_float(p+id,0,1.0);
     p++;
     ++i;
   }
