@@ -537,8 +537,8 @@ __global__ void sample(int *mq, MBOARD *mxb) {
   int c = 0;
   int id = blockIdx.x * blockDim.x + threadIdx.x;
   while(*mq < 38) {
-    //mb = genWordNV((float)id/20000.0,((float)id/10000.0)*10,id);
-    mb = genWordNV(.2,2,id);
+    mb = genWordNV((float)id/20000.0,((float)id/10000.0)*10,id);
+    // mb = genWordNV(.3,3,id);
     //    mb = {.board = {60753670ULL ,1147788ULL, 34352ULL, 36622ULL}};
     int blackQ = countBlackQueensD(mb);
     int whiteQ = countWhiteQueensD(mb);
@@ -554,13 +554,17 @@ __global__ void sample(int *mq, MBOARD *mxb) {
       printf("%i %i %i it %i id %i\n",blackQ, whiteQ, *mq, c, id);
       printf("%llu %llu %llu %llu\n",mb.board[0],mb.board[1],mb.board[2],mb.board[3]);
       drawBoard(Not(getQueenMask(mb)),mb);
-
-      int s = 0;   
+    }
+   if(whiteQ - blackQ >= 4 && blackQ >= *mq - 4){
+      int s = 0;
       MBOARD swapped = findSwap(mb, &s);
       if(s > *mq){
 	whiteQ = s;
 	blackQ = s;
 	if(s > 35){
+	  printf("%i %i %i it %i id %i\n",blackQ, whiteQ, *mq, c, id);
+	  printf("%llu %llu %llu %llu\n",mb.board[0],mb.board[1],mb.board[2],mb.board[3]);
+    
 	  printf("s = %i\n",s);
 	  drawBoard(Not(getQueenMask(mb)),mb);
 	  printf("swapped \n");
@@ -569,8 +573,6 @@ __global__ void sample(int *mq, MBOARD *mxb) {
 	mb = swapped;
       }
     }
-    
-    
     if((whiteQ == blackQ) && whiteQ > *mq) {
       //  printf("%i %i %i it %i id %i\n",blackQ, whiteQ, *mq, c, id);
      //drawBoard(Not(getQueenMask(mb)),mb);
