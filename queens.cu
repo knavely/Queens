@@ -200,7 +200,7 @@ __device__ __host__ MBOARD getRookMask(MBOARD queens) {
       r13 = Or(r13, And(LShift(r12,1), And(Not(pos),mask)));
       r14 = Or(r14, And(LShift(r13,1), And(Not(pos),mask)));
       r15 = Or(r15, And(LShift(r14,1), And(Not(pos),mask)));
-      r16 = Or(r15, And(LShift(r15,1), And(Not(pos),mask)));
+      r16 = Or(r16, And(LShift(r15,1), And(Not(pos),mask)));
       
       l1 = Or(l1, And(RShift(queens,1), And(Not(pos),mask)));
       l2 = Or(l2, And(RShift(l1,1), And(Not(pos),mask)));
@@ -217,7 +217,7 @@ __device__ __host__ MBOARD getRookMask(MBOARD queens) {
       l13 = Or(l13, And(RShift(l12,1), And(Not(pos),mask)));
       l14 = Or(l14, And(RShift(l13,1), And(Not(pos),mask)));
       l15 = Or(l15, And(RShift(l14,1), And(Not(pos),mask)));
-      l16 = Or(l15, And(RShift(l15,1), And(Not(pos),mask)));    
+      l16 = Or(l16, And(RShift(l15,1), And(Not(pos),mask)));    
     }
   } 
   // BOARD pattern = 1ULL | (1ULL << 8) | (1ULL << 16) | (1ULL << 24)
@@ -239,7 +239,7 @@ __device__ __host__ MBOARD getRookMask(MBOARD queens) {
       u13 = Or(u13, And(LShift(u12,16), And(Not(pos),mask)));
       u14 = Or(u14, And(LShift(u13,16), And(Not(pos),mask)));
       u15 = Or(u15, And(LShift(u14,16), And(Not(pos),mask)));
-      u16 = Or(u15, And(LShift(u15,16), And(Not(pos),mask)));
+      u16 = Or(u16, And(LShift(u15,16), And(Not(pos),mask)));
       
       d1 = Or(d1, And(RShift(queens,16), And(Not(pos),mask)));
       d2 = Or(d2, And(RShift(d1,16), And(Not(pos),mask)));
@@ -256,7 +256,7 @@ __device__ __host__ MBOARD getRookMask(MBOARD queens) {
       d13 = Or(d13, And(RShift(d12,16), And(Not(pos),mask)));
       d14 = Or(d14, And(RShift(d13,16), And(Not(pos),mask)));
       d15 = Or(d15, And(RShift(d14,16), And(Not(pos),mask)));
-      d16 = Or(d15, And(RShift(d15,16), And(Not(pos),mask)));
+      d16 = Or(d16, And(RShift(d15,16), And(Not(pos),mask)));
       
     } 
   }
