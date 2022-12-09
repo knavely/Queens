@@ -34,14 +34,14 @@ __device__  MBOARD32 genWordNV32(float x, int m, int id) {
   float c = (pow(x,2)*((1-pow(x,m))*(1-pow(x,m))))/(pow(1-x,2));
  
   MBOARD32 g = {0ULL};
-  //  int nB = (geomNV(x+.5,id) % (m+1));
+  //int nB = (geomNV(x+.5,id) % (m+1));
   int nB = (geomNV(x,id) % (m+1));
   //  printf("%i\n",nB);
   g.board[0] = g.board[0] | ((1ULL << nB) - 1);
-  int nA = geomNV(x,id) % (m+1);
+  int nA = (geomNV(x,id) % (m+1))*50;
   int core = geomNV(c,id);
   for(int i = 0; i < core; ++i) {
-    int ya = (geomNV(x,id) % (300*m+1))*16 + 1;
+    int ya = (geomNV(x,id) % (m+1))*50 + 1;
     int yb = ((geomNV(x,id) % (m+1)) +1);
     g.board[((i+nB)/64) % 16] = ROL64(g.board[((i+nB)/64) % 16],(ya + yb));
     g.board[((i+nB)/64) % 16] = g.board[((i+nB)/64) % 16] | ((1ULL << yb) -1);

@@ -856,7 +856,7 @@ __global__ void sample(int *mq, MBOARD32 *mxb) {
     
 	  printf("s = %i\n",s);
 	  drawBoard(Not(getQueenMask(mb)),mb);
-	  printf("swapped \n");
+	  printf("swapped %i\n",s);
 	  drawBoard(Not(getQueenMask(swapped)),swapped);      
 	}
 	mb = swapped;
@@ -934,6 +934,7 @@ int main() {
   int * mq;
   cudaMallocManaged(&mxb, sizeof(MBOARD32));
   cudaMallocManaged(&mq, sizeof(int));
+  *mq=0;
   sample<<<10000,blockSize>>>(mq,mxb);
   cudaDeviceSynchronize();
   drawBoard(Not(getQueenMask(*mxb)),*mxb); 
