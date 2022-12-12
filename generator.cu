@@ -30,7 +30,7 @@ __device__ inline BOARD ROL64(BOARD a, unsigned int offset){
 
 __device__  MBOARD32 genWordNV32(float x, int m, int id) {
   //B = 1, A = 0
-  float c = (pow(x,2)*((1-pow(x,m+32))*(1-pow(x,m+32))))/(pow(1-x,2));
+  float c = .2;//(pow(x,2)*((1-pow(x,m+32))*(1-pow(x,m+32))))/(pow(1-x,2));
  
   MBOARD32 g = {0ULL};
   //int nB = (geomNV(x+.5,id) % (m+1));

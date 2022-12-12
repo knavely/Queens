@@ -827,25 +827,26 @@ __global__ void sample(int *mq, MBOARD32 *mxb) {
   int id = blockIdx.x * blockDim.x + threadIdx.x;
   while(*mq < 146) {
     //mb = genWordNV32((float)id/20000.0,((float)id/1000.0)+1,id);
-    mb = genWordNV32(.05,2,id);
+    //mb = genWordNV32(.08,7,id);
+    mb = genWordNV32(.03,8,id);
     //    mb = {.board = {60753670ULL ,1147788ULL, 34352ULL, 36622ULL}};
     int blackQ = countBlackQueensD(mb);
     int whiteQ = countWhiteQueensD(mb);
     //    printf("%i %i %i\n",blackQ, whiteQ, *mq);
-    //if((whiteQ <= blackQ)) {
+   if((whiteQ <= blackQ)) {
     mb = Or(mb, Not(getQueenMask(Not(getQueenMask(mb)))));
     int newBlackQ = countBlackQueensD(mb);
     int newWhiteQ = countWhiteQueensD(mb);
     blackQ = newBlackQ;
     whiteQ = newWhiteQ;
-      //}
+      }
     if(whiteQ >= 130 && blackQ >= whiteQ - 20 ) {
       printf("%i %i %i it %i id %i\n",whiteQ, blackQ, *mq, c, id);
       //printf("%llu %llu %llu %llu\n",mb.board[0],mb.board[1],mb.board[2],mb.board[3]);
       drawBoard(Not(getQueenMask(mb)),mb);
     }
     
-   if(whiteQ - blackQ >= 6 && blackQ >= 120){
+   if(whiteQ >= 120 && blackQ >= 120){
       int s = 0;
       MBOARD32 swapped = findSwap(mb, &s);
       if(s > *mq){
