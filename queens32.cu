@@ -826,8 +826,8 @@ __global__ void sample(int *mq, MBOARD32 *mxb) {
   int c = 0;
   int id = blockIdx.x * blockDim.x + threadIdx.x;
   while(*mq < 146) {
-    //mb = genWordNV32((float)id/20000.0,((float)id/10000.0)*10,id);
-    mb = genWordNV32(.1,2,id);
+    //mb = genWordNV32((float)id/20000.0,((float)id/1000.0)+1,id);
+    mb = genWordNV32(.05,2,id);
     //    mb = {.board = {60753670ULL ,1147788ULL, 34352ULL, 36622ULL}};
     int blackQ = countBlackQueensD(mb);
     int whiteQ = countWhiteQueensD(mb);
@@ -839,29 +839,30 @@ __global__ void sample(int *mq, MBOARD32 *mxb) {
     blackQ = newBlackQ;
     whiteQ = newWhiteQ;
       //}
-    if(whiteQ >= 120 && blackQ >= whiteQ - 6 ) {
+    if(whiteQ >= 130 && blackQ >= whiteQ - 20 ) {
       printf("%i %i %i it %i id %i\n",whiteQ, blackQ, *mq, c, id);
       //printf("%llu %llu %llu %llu\n",mb.board[0],mb.board[1],mb.board[2],mb.board[3]);
       drawBoard(Not(getQueenMask(mb)),mb);
     }
-   if(whiteQ - blackQ >= 6 && blackQ >= *mq - 6){
+    
+   if(whiteQ - blackQ >= 6 && blackQ >= 120){
       int s = 0;
       MBOARD32 swapped = findSwap(mb, &s);
       if(s > *mq){
 	whiteQ = s;
 	blackQ = s;
-	if(s > 100){
-	  printf("%i %i %i it %i id %i\n",whiteQ, blackQ, *mq, c, id);
+	
+	printf("%i %i %i it %i id %i\n",whiteQ, blackQ, *mq, c, id);
 	  //printf("%llu %llu %llu %llu\n",mb.board[0],mb.board[1],mb.board[2],mb.board[3]);
     
-	  printf("s = %i\n",s);
-	  drawBoard(Not(getQueenMask(mb)),mb);
-	  printf("swapped %i\n",s);
-	  drawBoard(Not(getQueenMask(swapped)),swapped);      
-	}
+	printf("s = %i\n",s);
+	drawBoard(Not(getQueenMask(mb)),mb);
+	printf("swapped %i\n",s);
+	drawBoard(Not(getQueenMask(swapped)),swapped);      
+	
 	mb = swapped;
       }
-    }
+   }
     if((whiteQ == blackQ) && whiteQ > *mq) {
       printf("%i %i %i it %i id %i\n",whiteQ, blackQ, *mq, c, id);
       drawBoard(Not(getQueenMask(mb)),mb);

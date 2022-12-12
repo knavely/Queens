@@ -13,3 +13,5 @@ typedef struct MBOARD {
 typedef struct MBOARD32 {
   BOARD board[16] = {0};
 } MBOARD32;
+
+__device__ __host__ MBOARD32 LShift(MBOARD32 B,int k);
