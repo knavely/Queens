@@ -828,7 +828,7 @@ __global__ void sample(int *mq, MBOARD32 *mxb) {
   while(*mq < 146) {
     //mb = genWordNV32((float)id/20000.0,((float)id/1000.0)+1,id);
     //mb = genWordNV32(.08,7,id);
-    mb = genWordNV32(.03,8,id);
+    mb = genWordNV32(.03,5,id);
     //    mb = {.board = {60753670ULL ,1147788ULL, 34352ULL, 36622ULL}};
     int blackQ = countBlackQueensD(mb);
     int whiteQ = countWhiteQueensD(mb);
@@ -840,7 +840,7 @@ __global__ void sample(int *mq, MBOARD32 *mxb) {
     blackQ = newBlackQ;
     whiteQ = newWhiteQ;
       }
-    if(whiteQ >= 130 && blackQ >= whiteQ - 20 ) {
+    if(whiteQ >= 130 && blackQ >= 130 ) {
       printf("%i %i %i it %i id %i\n",whiteQ, blackQ, *mq, c, id);
       //printf("%llu %llu %llu %llu\n",mb.board[0],mb.board[1],mb.board[2],mb.board[3]);
       drawBoard(Not(getQueenMask(mb)),mb);
