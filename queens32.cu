@@ -464,22 +464,22 @@ __device__ __host__ MBOARD32 getBishopMask(MBOARD32 queens) {
       r31 = Or(r31, And(LShift(r30, 33), And(Not(pos),mask2)));
       r32 = Or(r32, And(LShift(r31, 33), And(Not(pos),mask2)));
 
-      l1 = Or(l1, And(RShift(queens,17), And(Not(pos),mask2)));
-      l2 = Or(l2, And(RShift(l1,17), And(Not(pos),mask2)));
-      l3 = Or(l3, And(RShift(l2,17), And(Not(pos),mask2)));
-      l4 = Or(l4, And(RShift(l3,17), And(Not(pos),mask2)));
-      l5 = Or(l5, And(RShift(l4,17), And(Not(pos),mask2)));
-      l6 = Or(l6, And(RShift(l5,17), And(Not(pos),mask2)));
-      l7 = Or(l7, And(RShift(l6,17), And(Not(pos),mask2)));
-      l8 = Or(l8, And(RShift(l7,17), And(Not(pos),mask2)));
-      l9 = Or(l9, And(RShift(l8,17), And(Not(pos),mask2)));
-      l10 = Or(l10, And(RShift(l9,17), And(Not(pos),mask2)));
-      l11 = Or(l11, And(RShift(l10,17), And(Not(pos),mask2)));
-      l12 = Or(l12, And(RShift(l11,17), And(Not(pos),mask2)));
-      l13 = Or(l13, And(RShift(l12,17), And(Not(pos),mask2)));
-      l14 = Or(l14, And(RShift(l13,17), And(Not(pos),mask2)));
-      l15 = Or(l15, And(RShift(l14,17), And(Not(pos),mask2)));
-      l16 = Or(l16, And(RShift(l15,17), And(Not(pos),mask2)));
+      l1 = Or(l1, And(RShift(queens,33), And(Not(pos),mask2)));
+      l2 = Or(l2, And(RShift(l1,33), And(Not(pos),mask2)));
+      l3 = Or(l3, And(RShift(l2,33), And(Not(pos),mask2)));
+      l4 = Or(l4, And(RShift(l3,33), And(Not(pos),mask2)));
+      l5 = Or(l5, And(RShift(l4,33), And(Not(pos),mask2)));
+      l6 = Or(l6, And(RShift(l5,33), And(Not(pos),mask2)));
+      l7 = Or(l7, And(RShift(l6,33), And(Not(pos),mask2)));
+      l8 = Or(l8, And(RShift(l7,33), And(Not(pos),mask2)));
+      l9 = Or(l9, And(RShift(l8,33), And(Not(pos),mask2)));
+      l10 = Or(l10, And(RShift(l9,33), And(Not(pos),mask2)));
+      l11 = Or(l11, And(RShift(l10,33), And(Not(pos),mask2)));
+      l12 = Or(l12, And(RShift(l11,33), And(Not(pos),mask2)));
+      l13 = Or(l13, And(RShift(l12,33), And(Not(pos),mask2)));
+      l14 = Or(l14, And(RShift(l13,33), And(Not(pos),mask2)));
+      l15 = Or(l15, And(RShift(l14,33), And(Not(pos),mask2)));
+      l16 = Or(l16, And(RShift(l15,33), And(Not(pos),mask2)));
       l17 = Or(l17, And(RShift(l16,33), And(Not(pos),mask2)));
       l18 = Or(l18, And(RShift(l17,33), And(Not(pos),mask2)));
       l19 = Or(l19, And(RShift(l18,33), And(Not(pos),mask2)));
@@ -705,7 +705,6 @@ __device__ __host__ MBOARD32 getBishopMask(MBOARD32 queens) {
       d30 = Or(d30, And(RShift(d29,31), And(Not(pos),mask2)));
       d31 = Or(d31, And(RShift(d30,31), And(Not(pos),mask2)));
       d32 = Or(d32, And(RShift(d31,31), And(Not(pos),mask2)));
-
       }   
   }
   MBOARD32 bishopMask1 =  Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(r1, r2),r3),r4),r5),r6),r7),r8),l1),
@@ -761,8 +760,9 @@ __device__  MBOARD32 findSwap(MBOARD32 queens, int *mx) {
     MBOARD32 swapped = And(queens, Not(mask));
     int WhiteQ = countWhiteQueensD(swapped);
     int BlackQ = countBlackQueensD(swapped);
-    if(WhiteQ == BlackQ && WhiteQ > num){
-      num = BlackQ;
+    int min = WhiteQ > BlackQ ? BlackQ : WhiteQ;
+    if(min > *mx){
+      num = min;
       qmax = swapped;
     } 
   } 
@@ -828,7 +828,7 @@ __global__ void sample(int *mq, MBOARD32 *mxb) {
   while(*mq < 146) {
     //mb = genWordNV32((float)id/20000.0,((float)id/1000.0)+1,id);
     //mb = genWordNV32(.08,7,id);
-    mb = genWordNV32(.03,5,id);
+    mb = genWordNV32(.01,16,id);
     //    mb = {.board = {60753670ULL ,1147788ULL, 34352ULL, 36622ULL}};
     int blackQ = countBlackQueensD(mb);
     int whiteQ = countWhiteQueensD(mb);
@@ -846,7 +846,7 @@ __global__ void sample(int *mq, MBOARD32 *mxb) {
       drawBoard(Not(getQueenMask(mb)),mb);
     }
     
-   if(whiteQ >= 120 && blackQ >= 120){
+   if(whiteQ >= 140 && blackQ >= 120 || whiteQ >= 120 && blackQ >= 140){
       int s = 0;
       MBOARD32 swapped = findSwap(mb, &s);
       if(s > *mq){
@@ -864,10 +864,13 @@ __global__ void sample(int *mq, MBOARD32 *mxb) {
 	mb = swapped;
       }
    }
-    if((whiteQ == blackQ) && whiteQ > *mq) {
+   int mn = blackQ < whiteQ ? blackQ: whiteQ;
+   if(mn  > *mq) {
+     if(c > 0){
       printf("%i %i %i it %i id %i\n",whiteQ, blackQ, *mq, c, id);
       drawBoard(Not(getQueenMask(mb)),mb);
-      *mq = whiteQ;
+     }
+      *mq = mn;
       *mxb = mb;
     }
     ++c;
@@ -941,8 +944,8 @@ int main() {
   cudaDeviceSynchronize();
   drawBoard(Not(getQueenMask(*mxb)),*mxb); 
 
-  MBOARD32 g = {.board = {0,0,0,0,0,0,0,1ULL << 10}};
-  drawBoard(getQueenMask(g),bishopDiagonal2());
+  MBOARD32 g = {.board = {0,0,0,1ULL << 22,0,0,0,0}};
+  drawBoard(getQueenMask(g),bishopDiagonal1());
 
   //srand(time(0));
   //sampleH();
