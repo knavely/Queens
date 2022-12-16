@@ -757,21 +757,22 @@ __device__  MBOARD32 findSwap(MBOARD32 queens, int *mx) {
   MBOARD32 qmax = queens;
   int num = 0;
   for(MBOARD32 mask = rookRowMask(); Positive(mask); mask = LShiftRook(mask,1)) {
-    MBOARD32 swapped = And(queens, Not(mask));
+    MBOARD32 swapped = And(queens, Not(And(mask,queens)));
     int WhiteQ = countWhiteQueensD(swapped);
     int BlackQ = countBlackQueensD(swapped);
     int min = WhiteQ > BlackQ ? BlackQ : WhiteQ;
-    if(min > *mx){
+    if(min > num){
       num = min;
       qmax = swapped;
     } 
   } 
   for(MBOARD32 mask = rookColMask(); Positive(mask); mask = LShift(mask,1)) {
-    MBOARD32 swapped = And(queens, Not(mask));
+    MBOARD32 swapped = And(queens, Not(And(mask, queens)));
     int WhiteQ = countWhiteQueensD(swapped);
     int BlackQ = countBlackQueensD(swapped);
-    if(WhiteQ == BlackQ && WhiteQ > num){
-      num = BlackQ;
+    int min = WhiteQ > BlackQ ? BlackQ : WhiteQ;
+    if(min > num){
+      num = min;
       qmax = swapped;
     }
   }
@@ -779,35 +780,41 @@ __device__  MBOARD32 findSwap(MBOARD32 queens, int *mx) {
   MBOARD32 BISHOP2 = bishopDiagonal2(); //0x0102040810204080;  
 
   for(MBOARD32 mask1 = BISHOP1, mask2 = BISHOP1; Positive(mask2); mask1 = RShiftBishop1(mask1,1), mask2 = LShiftBishop1(mask2,1)) {
-    MBOARD32 swapped = And(queens, Not(mask1));
+    MBOARD32 swapped = And(queens, Not(And(mask1,queens)));
     int WhiteQ = countWhiteQueensD(swapped);
     int BlackQ = countBlackQueensD(swapped);
-    if(WhiteQ == BlackQ && WhiteQ > num){
-      num = BlackQ;
+    int min = WhiteQ > BlackQ ? BlackQ : WhiteQ;
+    if(min > num){
+      num = min;
       qmax = swapped;
     }
-    swapped = And(queens, Not(mask2));
+    
+    swapped = And(queens, Not(And(mask2,queens)));
     WhiteQ = countWhiteQueensD(swapped);
     BlackQ = countBlackQueensD(swapped);
-    if(WhiteQ == BlackQ && WhiteQ > num){
-      num = BlackQ;
+    min = WhiteQ > BlackQ ? BlackQ : WhiteQ;
+    if(min > num){
+      num = min;
       qmax = swapped;
     }
   }
 
   for(MBOARD32 mask1 = BISHOP2, mask2 = BISHOP2; Positive(mask2); mask1 = RShiftBishop1(mask1,1), mask2 = LShiftBishop1(mask2,1)) {
-    MBOARD32 swapped = And(queens, Not(mask1));
+    MBOARD32 swapped = And(queens, Not(And(mask1, queens)));
     int WhiteQ = countWhiteQueensD(swapped);
     int BlackQ = countBlackQueensD(swapped);
-    if(WhiteQ == BlackQ && WhiteQ > num){
-      num = BlackQ;
+    int min = WhiteQ > BlackQ ? BlackQ : WhiteQ;
+    if(min > num){
+      num = min;
       qmax = swapped;
     }
-    swapped = And(queens, Not(mask2));
+    
+    swapped = And(queens, Not(And(mask2,queens)));
     WhiteQ = countWhiteQueensD(swapped);
     BlackQ = countBlackQueensD(swapped);
-    if(WhiteQ == BlackQ && WhiteQ > num){
-      num = BlackQ;
+    min = WhiteQ > BlackQ ? BlackQ : WhiteQ;
+    if(min > num){
+      num = min;
       qmax = swapped;
     }
   }
@@ -828,7 +835,7 @@ __global__ void sample(int *mq, MBOARD32 *mxb) {
   while(*mq < 146) {
     //mb = genWordNV32((float)id/20000.0,((float)id/1000.0)+1,id);
     //mb = genWordNV32(.08,7,id);
-    mb = genWordNV32(.01,16,id);
+    mb = genWordNV32(.05,5,id);
     //    mb = {.board = {60753670ULL ,1147788ULL, 34352ULL, 36622ULL}};
     int blackQ = countBlackQueensD(mb);
     int whiteQ = countWhiteQueensD(mb);
@@ -846,7 +853,7 @@ __global__ void sample(int *mq, MBOARD32 *mxb) {
       drawBoard(Not(getQueenMask(mb)),mb);
     }
     
-   if(whiteQ >= 140 && blackQ >= 120 || whiteQ >= 120 && blackQ >= 140){
+   if(whiteQ >= 140 && blackQ >= 130 || whiteQ >= 130 && blackQ >= 140){
       int s = 0;
       MBOARD32 swapped = findSwap(mb, &s);
       if(s > *mq){
