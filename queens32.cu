@@ -832,7 +832,7 @@ __global__ void sample(int *mq, MBOARD32 *mxb) {
   MBOARD32 mb = {0};
   int c = 0;
   int id = blockIdx.x * blockDim.x + threadIdx.x;
-  while(*mq < 146) {
+  while(*mq < 150) {
     //mb = genWordNV32((float)id/20000.0,((float)id/1000.0)+1,id);
     //mb = genWordNV32(.08,7,id);
     mb = genWordNV32(.05,5,id);
@@ -853,7 +853,7 @@ __global__ void sample(int *mq, MBOARD32 *mxb) {
       drawBoard(Not(getQueenMask(mb)),mb);
     }
     
-   if(whiteQ >= 140 && blackQ >= 130 || whiteQ >= 130 && blackQ >= 140){
+   if(whiteQ >= 140 && blackQ >= 135 || whiteQ >= 135 && blackQ >= 140){
       int s = 0;
       MBOARD32 swapped = findSwap(mb, &s);
       if(s > *mq){
