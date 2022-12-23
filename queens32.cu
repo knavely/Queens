@@ -846,17 +846,24 @@ __global__ void sample(int *mq, MBOARD32 *mxb) {
     int newWhiteQ = countWhiteQueensD(mb);
     blackQ = newBlackQ;
     whiteQ = newWhiteQ;
-      }
+   }
     if(whiteQ >= 130 && blackQ >= 130 ) {
       printf("%i %i %i it %i id %i\n",whiteQ, blackQ, *mq, c, id);
       //printf("%llu %llu %llu %llu\n",mb.board[0],mb.board[1],mb.board[2],mb.board[3]);
       drawBoard(Not(getQueenMask(mb)),mb);
     }
     
-   if(whiteQ >= 140 && blackQ >= 135 || whiteQ >= 135 && blackQ >= 140){
+   if(whiteQ >= 135 && blackQ >= 140 || whiteQ >= 140 && blackQ >= 135){
       int s = 0;
+      mb = whiteQ > blackQ ? mb : Not(getQueenMask(mb));
+      int mn = whiteQ > blackQ ? blackQ : whiteQ;
+      int mx = whiteQ > blackQ ? whiteQ : blackQ;
       MBOARD32 swapped = findSwap(mb, &s);
-      if(s > *mq){
+      if(s < *mq && s > mn && mx > *mq) {
+	mb = whiteQ > blackQ ? mb : Not(getQueenMask(mb));
+	swapped = findSwap(mb, &s);
+      }
+      if(s > *mq && s > mn){
 	whiteQ = s;
 	blackQ = s;
 	
@@ -947,7 +954,7 @@ int main() {
   cudaMallocManaged(&mxb, sizeof(MBOARD32));
   cudaMallocManaged(&mq, sizeof(int));
   *mq=0;
-  sample<<<10000,blockSize>>>(mq,mxb);
+  sample<<<20000,blockSize>>>(mq,mxb);
   cudaDeviceSynchronize();
   drawBoard(Not(getQueenMask(*mxb)),*mxb); 
 
