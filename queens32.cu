@@ -822,6 +822,75 @@ __device__  MBOARD32 findSwap(MBOARD32 queens, int *mx) {
   return qmax;	
 } 
 
+__device__  MBOARD32 findSwap2(MBOARD32 queens, int *mx) {
+  MBOARD32 qmax = queens;
+  int num = 0;
+  for(MBOARD32 mask = rookRowMask(); Positive(mask); mask = LShiftRook(mask,1)) {
+    MBOARD32 swapped = And(queens, Not(And(mask,queens)));
+    int WhiteQ = countWhiteQueensD(swapped);
+    int BlackQ = countBlackQueensD(swapped);
+    int ms = WhiteQ + BlackQ;
+    if(ms > num){
+      num = ms;
+      qmax = swapped;
+    } 
+  } 
+  for(MBOARD32 mask = rookColMask(); Positive(mask); mask = LShift(mask,1)) {
+    MBOARD32 swapped = And(queens, Not(And(mask, queens)));
+    int WhiteQ = countWhiteQueensD(swapped);
+    int BlackQ = countBlackQueensD(swapped);
+    int ms = WhiteQ + BlackQ; 
+    if(ms > num){
+      num = ms;
+      qmax = swapped;
+    }
+  }
+  MBOARD32 BISHOP1 = bishopDiagonal1(); //0x8040201008040201;
+  MBOARD32 BISHOP2 = bishopDiagonal2(); //0x0102040810204080;  
+
+  for(MBOARD32 mask1 = BISHOP1, mask2 = BISHOP1; Positive(mask2); mask1 = RShiftBishop1(mask1,1), mask2 = LShiftBishop1(mask2,1)) {
+    MBOARD32 swapped = And(queens, Not(And(mask1,queens)));
+    int WhiteQ = countWhiteQueensD(swapped);
+    int BlackQ = countBlackQueensD(swapped);
+    int ms = WhiteQ + BlackQ; 
+    if(ms > num){
+      num = ms;
+      qmax = swapped;
+    }
+    
+    swapped = And(queens, Not(And(mask2,queens)));
+    WhiteQ = countWhiteQueensD(swapped);
+    BlackQ = countBlackQueensD(swapped);
+    ms = WhiteQ + BlackQ; 
+    if(ms > num){
+      num = ms;
+      qmax = swapped;
+    }
+  }
+
+  for(MBOARD32 mask1 = BISHOP2, mask2 = BISHOP2; Positive(mask2); mask1 = RShiftBishop1(mask1,1), mask2 = LShiftBishop1(mask2,1)) {
+    MBOARD32 swapped = And(queens, Not(And(mask1, queens)));
+    int WhiteQ = countWhiteQueensD(swapped);
+    int BlackQ = countBlackQueensD(swapped);
+    int ms = WhiteQ + BlackQ; 
+    if(ms > num){
+      num = ms;
+      qmax = swapped;
+    }
+    
+    swapped = And(queens, Not(And(mask2,queens)));
+    WhiteQ = countWhiteQueensD(swapped);
+    BlackQ = countBlackQueensD(swapped);
+    ms = WhiteQ + BlackQ; 
+    if(ms > num){
+      num = ms;
+      qmax = swapped;
+    }
+  }
+  *mx = num;
+  return qmax;	
+} 
+
 
 __global__ void sample(int *mq, MBOARD32 *mxb) {
   //printf("pop %i %i \n", __popcll(0xFFULL), __popcll(~0xFFULL));
@@ -833,7 +902,7 @@ __global__ void sample(int *mq, MBOARD32 *mxb) {
   int c = 0;
   int id = blockIdx.x * blockDim.x + threadIdx.x;
   while(*mq < 150) {
-    //mb = genWordNV32((float)id/20000.0,((float)id/1000.0)+1,id);
+    // mb = genWordNV32((float)id/20000.0,((float)id/1000.0)+1,id);
     //mb = genWordNV32(.08,7,id);
     mb = genWordNV32(.05,5,id);
     //    mb = {.board = {60753670ULL ,1147788ULL, 34352ULL, 36622ULL}};
@@ -853,15 +922,20 @@ __global__ void sample(int *mq, MBOARD32 *mxb) {
       drawBoard(Not(getQueenMask(mb)),mb);
     }
     
-   if(whiteQ >= 135 && blackQ >= 140 || whiteQ >= 140 && blackQ >= 135){
+    if(*mq > 120 && (whiteQ >= 120 && blackQ >= *mq || whiteQ >= *mq && blackQ >= 120)) {
       int s = 0;
+      int sm = 0;
       mb = whiteQ > blackQ ? mb : Not(getQueenMask(mb));
       int mn = whiteQ > blackQ ? blackQ : whiteQ;
       int mx = whiteQ > blackQ ? whiteQ : blackQ;
-      MBOARD32 swapped = findSwap(mb, &s);
-      if(s < *mq && s > mn && mx > *mq) {
-	mb = whiteQ > blackQ ? mb : Not(getQueenMask(mb));
-	swapped = findSwap(mb, &s);
+      MBOARD32 swapped = findSwap2(mb, &sm);
+      swapped = findSwap2(swapped, &sm);
+      //MBOARD32 swapped = findSwap(mb, &s);
+      //if(s < *mq && s > mn && mx > *mq) {
+      if(sm > whiteQ + blackQ){
+	//mb = whiteQ > blackQ ? mb : Not(getQueenMask(mb));
+	swapped = countWhiteQueensD(swapped) > countBlackQueensD(swapped) ? swapped : Not(getQueenMask(swapped));
+	swapped = findSwap(swapped, &s);
       }
       if(s > *mq && s > mn){
 	whiteQ = s;
@@ -884,7 +958,8 @@ __global__ void sample(int *mq, MBOARD32 *mxb) {
       printf("%i %i %i it %i id %i\n",whiteQ, blackQ, *mq, c, id);
       drawBoard(Not(getQueenMask(mb)),mb);
      }
-      *mq = mn;
+      //*mq = mn;
+     atomicMax(mq,mn);
       *mxb = mb;
     }
     ++c;
