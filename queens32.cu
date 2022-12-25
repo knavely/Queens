@@ -902,7 +902,7 @@ __global__ void sample(int *mq, MBOARD32 *mxb) {
   int c = 0;
   int id = blockIdx.x * blockDim.x + threadIdx.x;
   while(*mq < 150) {
-    // mb = genWordNV32((float)id/20000.0,((float)id/1000.0)+1,id);
+    //mb = genWordNV32((float)id/20000.0,((float)id/1000.0)+1,id);
     //mb = genWordNV32(.08,7,id);
     mb = genWordNV32(.05,5,id);
     //    mb = {.board = {60753670ULL ,1147788ULL, 34352ULL, 36622ULL}};
@@ -929,6 +929,7 @@ __global__ void sample(int *mq, MBOARD32 *mxb) {
       int mn = whiteQ > blackQ ? blackQ : whiteQ;
       int mx = whiteQ > blackQ ? whiteQ : blackQ;
       MBOARD32 swapped = findSwap2(mb, &sm);
+      swapped = findSwap2(swapped, &sm);
       swapped = findSwap2(swapped, &sm);
       //MBOARD32 swapped = findSwap(mb, &s);
       //if(s < *mq && s > mn && mx > *mq) {
