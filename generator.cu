@@ -38,10 +38,10 @@ __device__  MBOARD32 genWordNV32(float x, int m, int id) {
   int nB = (geomNV(x,id) % (m+1));
   //  printf("%i\n",nB);
   g.board[0] = g.board[0] | ((1ULL << nB) - 1);
-  int nA = (geomNV(x,id) % (900* m+1));
+  int nA = (geomNV(x,id) % (1024* m+1));
   int core = geomNV(c,id);
   for(int i = 0; i < core; ++i) {
-    int ya = (geomNV(x,id) % ((900)*m+1)) + 1;
+    int ya = (geomNV(x,id) % ((1024)*m+1)) + 1;
     int yb = ((geomNV(x,id) % (m+1)) +1);
 
     g = LShift(g,ya);

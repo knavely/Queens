@@ -937,6 +937,8 @@ __global__ void sample(int *mq, MBOARD32 *mxb) {
 	//mb = whiteQ > blackQ ? mb : Not(getQueenMask(mb));
 	swapped = countWhiteQueensD(swapped) > countBlackQueensD(swapped) ? swapped : Not(getQueenMask(swapped));
 	swapped = findSwap(swapped, &s);
+	swapped = countWhiteQueensD(swapped) > countBlackQueensD(swapped) ? swapped : Not(getQueenMask(swapped));
+	swapped = findSwap(swapped, &s);
       }
       if(s > *mq && s > mn){
 	whiteQ = s;
