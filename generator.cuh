@@ -15,6 +15,7 @@ __device__  BOARD genWord(float x, int m, int id);
 __device__  MBOARD genMBOARD(float x, int m, int id);
 __device__ MBOARD genWordNV(float x, int m, int id);
 __device__ MBOARD32 genWordNV32(float x, int m, int id);
+__device__ MBOARD32 genWordT(float x, int m, int id);
 __host__  int geomH(float x);
 __host__  MBOARD genWordH(float x, int m);
 

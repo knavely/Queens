@@ -56,6 +56,34 @@ __device__  MBOARD32 genWordNV32(float x, int m, int id) {
   return g;
 }
 
+__device__  MBOARD32 genWordT(float x, int m, int id) {
+  //B = 1, A = 0
+  //float c = .01;
+  float c = (pow(x,2)*((1-pow(x,m))*(1-pow(x,m))))/(pow(1-x,2));
+ 
+  MBOARD32 g = {0ULL};
+  //int nB = (geomNV(x+.5,id) % (m+1));
+  int nB = (geomNV(x,id) % (m+1));
+  //  printf("%i\n",nB);
+  g.board[0] = g.board[0] | ((1ULL << nB) - 1);
+  int nA = (geomNV(x,id) % (m+1));
+  int core = geomNV(c,id);
+  for(int i = 0; i < core; ++i) {
+    int ya = (geomNV(x,id) % (m+1)) + 1;
+    int yb = ((geomNV(x,id) % (m+1)) +1);
+
+    g = LShift(g,ya);
+    g = LShift(g,yb);
+    g.board[0] = g.board[0] | ((1ULL << yb) - 1);
+    //g.board[((i+nB)/64) % 16] = ROL64(g.board[((i+nB)/64) % 16],(ya + yb));
+    //g.board[((i+nB)/64) % 16] = g.board[((i+nB)/64) % 16] | ((1ULL << yb) -1);
+  }
+  //  printf("%i , %i \n", nB,nA);
+  g.board[15] = (g.board[15] << nA) & ~(ROL64(1,nA) -1);
+  
+  return g;
+}
+
 __device__  MBOARD genWordNV(float x, int m, int id) {
   //B = 1, A = 0
   float c = (pow(x,2)*((1-pow(x,m))*(1-pow(x,m))))/(pow(1-x,2));
