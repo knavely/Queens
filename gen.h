@@ -10,3 +10,5 @@
 typedef unsigned long long BOARD;
 
 BOARD genWord64(float x, int m);
+BOARD genWordT8(float x, int m);
+BOARD LShift(BOARD B,int k);
